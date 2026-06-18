@@ -1,4 +1,5 @@
 Splunk Security Operations Lab with Agentic Threat Triage
+
 This project is built like a real Splunk app, not a loose collection of saved searches. It includes Dockerized Splunk, custom indexes, JSON sourcetypes, lookup enrichment, saved searches, Simple XML dashboards, realistic generated telemetry, live capture helpers, and a read-only agentic SOC analyst.
 Repository Description
 Dockerized Splunk SOC lab with custom indexes, realistic security telemetry, dashboards, SPL detections, and an agentic analyst that triages threats and generates investigation reports.
