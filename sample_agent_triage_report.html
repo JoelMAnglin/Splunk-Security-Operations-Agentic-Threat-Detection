@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agentic SOC Analyst Report</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #101418;
+      --panel: #171d23;
+      --panel-2: #1f2730;
+      --text: #eef3f7;
+      --muted: #9aa8b5;
+      --line: #2b3540;
+      --accent: #43b5a0;
+      --critical: #ff5a67;
+      --high: #f6a23a;
+      --medium: #e8d45c;
+      --low: #6fb6ff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+    header {
+      padding: 32px 28px 20px;
+      border-bottom: 1px solid var(--line);
+      background: #141a20;
+    }
+    .shell { width: min(1180px, calc(100vw - 32px)); margin: 0 auto; }
+    .eyebrow { color: var(--accent); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; font-weight: 800; }
+    h1 { margin: 8px 0 8px; font-size: 34px; letter-spacing: 0; }
+    h2 { margin: 4px 0 0; font-size: 22px; letter-spacing: 0; }
+    h3 { margin: 22px 0 10px; font-size: 15px; color: #d8e1e8; }
+    .subline { color: var(--muted); margin: 0; }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      margin: 22px 0;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      min-height: 94px;
+    }
+    .card span { color: var(--muted); font-size: 12px; text-transform: uppercase; font-weight: 700; }
+    .card strong { display: block; margin-top: 8px; font-size: 30px; }
+    main { padding: 24px 0 48px; }
+    .dashboard {
+      display: grid;
+      grid-template-columns: 1fr 1.35fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+    }
+    .bar-row {
+      display: grid;
+      grid-template-columns: 90px 1fr 30px;
+      align-items: center;
+      gap: 10px;
+      margin: 11px 0;
+      color: var(--muted);
+    }
+    .bar-track { height: 10px; background: #26313b; border-radius: 999px; overflow: hidden; }
+    .bar-fill { height: 100%; background: var(--accent); }
+    .timeline {
+      display: grid;
+      gap: 10px;
+    }
+    .timeline-item {
+      display: grid;
+      grid-template-columns: 92px 1fr;
+      gap: 12px;
+      padding: 10px;
+      background: var(--panel-2);
+      border-radius: 8px;
+      border: 1px solid var(--line);
+    }
+    .finding {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 20px;
+      margin: 16px 0;
+    }
+    .finding-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: start;
+    }
+    .severity {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 86px;
+      border-radius: 999px;
+      padding: 7px 11px;
+      font-size: 12px;
+      font-weight: 900;
+      color: #101418;
+    }
+    .sev-critical { background: var(--critical); }
+    .sev-high { background: var(--high); }
+    .sev-medium { background: var(--medium); }
+    .sev-low { background: var(--low); }
+    .summary { color: #c8d2dc; }
+    .muted { color: var(--muted); }
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .meta-grid div {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .meta-grid span { display: block; color: var(--muted); font-size: 12px; text-transform: uppercase; font-weight: 800; }
+    .meta-grid strong { display: block; margin-top: 5px; font-size: 13px; }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; }
+    table { width: 100%; border-collapse: collapse; min-width: 760px; }
+    th, td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; text-align: left; font-size: 13px; }
+    th { background: #202932; color: #dce6ee; position: sticky; top: 0; }
+    td { color: #c3ced8; }
+    details { margin-top: 16px; }
+    summary { cursor: pointer; color: var(--accent); font-weight: 800; }
+    pre {
+      white-space: pre-wrap;
+      background: #0b0f13;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      overflow-x: auto;
+    }
+    code { color: #d9f2ec; }
+    @media (max-width: 900px) {
+      .cards, .dashboard, .meta-grid { grid-template-columns: 1fr; }
+      h1 { font-size: 28px; }
+      .finding-head { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="shell">
+      <span class="eyebrow">Splunk Mastery Lab</span>
+      <h1>Agentic SOC Analyst Report</h1>
+      <p class="subline">Generated 2026-06-18 17:01:40 UTC. Mode <strong>all</strong>. Time range <strong>-24h</strong> to <strong>now</strong>.</p>
+      <div class="cards">
+        <div class="card"><span>Total Findings</span><strong>6</strong></div>
+        <div class="card"><span>Critical</span><strong>3</strong></div>
+        <div class="card"><span>High</span><strong>3</strong></div>
+        <div class="card"><span>Medium</span><strong>0</strong></div>
+        <div class="card"><span>Low</span><strong>0</strong></div>
+      </div>
+    </div>
+  </header>
+  <main class="shell">
+    <section class="dashboard">
+      <div class="panel">
+        <span class="eyebrow">Coverage</span>
+        <h2>Finding Domains</h2>
+        
+        <div class="bar-row">
+          <span>Cloud</span>
+          <div class="bar-track"><div class="bar-fill" style="width:50%"></div></div>
+          <strong>1</strong>
+        </div>
+        
+
+        <div class="bar-row">
+          <span>Endpoint</span>
+          <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
+          <strong>2</strong>
+        </div>
+        
+
+        <div class="bar-row">
+          <span>Identity</span>
+          <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
+          <strong>2</strong>
+        </div>
+        
+
+        <div class="bar-row">
+          <span>Web</span>
+          <div class="bar-track"><div class="bar-fill" style="width:50%"></div></div>
+          <strong>1</strong>
+        </div>
+        
+      </div>
+      <div class="panel">
+        <span class="eyebrow">Priority Queue</span>
+        <h2>Top Findings</h2>
+        <div class="timeline">
+          <div class="timeline-item"><span class="severity sev-critical">CRITICAL</span><div><strong>Impossible Travel Candidate</strong><br><span class="muted">Identity / Initial Access: Valid Accounts (T1078)</span></div></div><div class="timeline-item"><span class="severity sev-critical">CRITICAL</span><div><strong>Suspicious Living-off-the-land Process Chain</strong><br><span class="muted">Endpoint / Execution: Command and Scripting Interpreter (T1059)</span></div></div><div class="timeline-item"><span class="severity sev-critical">CRITICAL</span><div><strong>Cloud Privilege Escalation or Persistence</strong><br><span class="muted">Cloud / Privilege Escalation: Account Manipulation (T1098)</span></div></div><div class="timeline-item"><span class="severity sev-high">HIGH</span><div><strong>Brute Force or Password Spray Candidate</strong><br><span class="muted">Identity / Credential Access: Brute Force (T1110)</span></div></div><div class="timeline-item"><span class="severity sev-high">HIGH</span><div><strong>Suspicious Endpoint Network Egress</strong><br><span class="muted">Endpoint / Command and Control: Non-Standard Port (T1571)</span></div></div><div class="timeline-item"><span class="severity sev-high">HIGH</span><div><strong>Risky Web or API Client</strong><br><span class="muted">Web / Initial Access: Exploit Public-Facing Application (T1190)</span></div></div>
+        </div>
+      </div>
+    </section>
+    
+            <section class="finding">
+              <div class="finding-head">
+                <div>
+                  <span class="eyebrow">Finding 1 / identity</span>
+                  <h2>Impossible Travel Candidate</h2>
+                </div>
+                <span class="severity sev-critical">CRITICAL</span>
+              </div>
+              <p class="summary">Impossible Travel Candidate: Sequences successful logins by user and flags country changes within a short travel window. Top evidence: user=carla.ruiz, src_country=US, prev_country=NL, minutes=2.4, src_ip=10.20.5.230, prev_ip=10.10.2.22. Recommended action: Validate source geolocation, review MFA prompts, and check cloud/SaaS activity immediately after the later login.</p>
+              <div class="meta-grid">
+                <div><span>MITRE</span><strong>Initial Access: Valid Accounts (T1078)</strong></div>
+                <div><span>Rows</span><strong>5</strong></div>
+                <div><span>Domain</span><strong>Identity</strong></div>
+              </div>
+              <h3>Evidence</h3>
+              <div class="table-wrap"><table><thead><tr><th>_time</th><th>user</th><th>src_country</th><th>prev_country</th><th>src_ip</th><th>prev_ip</th><th>minutes</th><th>mfa_result</th></tr></thead><tbody><tr><td>2026-06-18T13:59:41.000+00:00</td><td>carla.ruiz</td><td>US</td><td>NL</td><td>10.20.5.230</td><td>10.10.2.22</td><td>2.4</td><td>push approved</td></tr><tr><td>2026-06-18T13:59:04.000+00:00</td><td>grace.hall</td><td>US</td><td>NL</td><td>10.10.1.17</td><td>10.10.1.133</td><td>2.2</td><td>totp approved</td></tr><tr><td>2026-06-18T13:57:15.000+00:00</td><td>carla.ruiz</td><td>NL</td><td>US</td><td>10.10.2.22</td><td>10.10.2.167</td><td>2.0</td><td>totp approved</td></tr><tr><td>2026-06-18T13:56:52.000+00:00</td><td>grace.hall</td><td>NL</td><td>US</td><td>10.10.1.133</td><td>103.77.240.9</td><td>20.2</td><td>push approved</td></tr><tr><td>2026-06-18T13:55:34.000+00:00</td><td>bob.smith</td><td>CN</td><td>US</td><td>10.20.5.161</td><td>10.20.5.197</td><td>25.1</td><td>totp approved</td></tr></tbody></table></div>
+              <details>
+                <summary>SPL used by the agent</summary>
+                <pre><code>search index=lab_auth action=success src_country=* | sort 0 user _time | streamstats current=f last(_time) as prev_time last(src_country) as prev_country last(src_ip) as prev_ip by user | eval minutes=round((_time-prev_time)/60,1) | where isnotnull(prev_country) AND src_country!=prev_country AND minutes&gt;0 AND minutes&lt;180 | table _time user src_country prev_country src_ip prev_ip minutes mfa_result | sort - _time | head 10</code></pre>
+              </details>
+            </section>
+            
+            <section class="finding">
+              <div class="finding-head">
+                <div>
+                  <span class="eyebrow">Finding 2 / endpoint</span>
+                  <h2>Suspicious Living-off-the-land Process Chain</h2>
+                </div>
+                <span class="severity sev-critical">CRITICAL</span>
+              </div>
+              <p class="summary">Suspicious Living-off-the-land Process Chain: Finds suspicious Windows process names and scores encoded command or downloader behavior. Top evidence: endpoint_host=api-02, user=svc_ci_cd, process_name=powershell.exe, parents=[&#x27;explorer.exe&#x27;, &#x27;services.exe&#x27;, &#x27;sshd&#x27;], risk=70. Recommended action: Collect the full process tree, isolate if this is unexpected, inspect command line content, and pivot to network egress from the same host.</p>
+              <div class="meta-grid">
+                <div><span>MITRE</span><strong>Execution: Command and Scripting Interpreter (T1059)</strong></div>
+                <div><span>Rows</span><strong>5</strong></div>
+                <div><span>Domain</span><strong>Endpoint</strong></div>
+              </div>
+              <h3>Evidence</h3>
+              <div class="table-wrap"><table><thead><tr><th>endpoint_host</th><th>user</th><th>process_name</th><th>executions</th><th>risk</th><th>parents</th><th>command_lines</th></tr></thead><tbody><tr><td>api-02</td><td>svc_ci_cd</td><td>powershell.exe</td><td>6</td><td>70</td><td>[&#x27;explorer.exe&#x27;, &#x27;services.exe&#x27;, &#x27;sshd&#x27;]</td><td>powershell.exe -NoP -W Hidden -EncodedCommand SQBFAFgA</td></tr><tr><td>db-01</td><td>frank.kim</td><td>powershell.exe</td><td>6</td><td>70</td><td>[&#x27;services.exe&#x27;, &#x27;teams.exe&#x27;, &#x27;winword.exe&#x27;]</td><td>powershell.exe -NoP -W Hidden -EncodedCommand SQBFAFgA</td></tr><tr><td>mac-exec-01</td><td>bob.smith</td><td>powershell.exe</td><td>6</td><td>70</td><td>[&#x27;launchd&#x27;, &#x27;teams.exe&#x27;]</td><td>powershell.exe -NoP -W Hidden -EncodedCommand SQBFAFgA</td></tr><tr><td>api-01</td><td>devon.lee</td><td>powershell.exe</td><td>4</td><td>70</td><td>[&#x27;sshd&#x27;, &#x27;winword.exe&#x27;]</td><td>powershell.exe -NoP -W Hidden -EncodedCommand SQBFAFgA</td></tr><tr><td>api-01</td><td>grace.hall</td><td>powershell.exe</td><td>4</td><td>70</td><td>[&#x27;explorer.exe&#x27;, &#x27;launchd&#x27;]</td><td>powershell.exe -NoP -W Hidden -EncodedCommand SQBFAFgA</td></tr></tbody></table></div>
+              <details>
+                <summary>SPL used by the agent</summary>
+                <pre><code>search index=lab_endpoint event_type=process process_name IN (&quot;powershell.exe&quot;,&quot;cmd.exe&quot;,&quot;rundll32.exe&quot;,&quot;regsvr32.exe&quot;,&quot;mshta.exe&quot;,&quot;wscript.exe&quot;) | spath input=_raw path=host output=endpoint_host | eval endpoint_host=coalesce(endpoint_host,host), encoded=if(match(command_line,&quot;(?i)-enc|-encodedcommand|frombase64string&quot;),1,0), download=if(match(command_line,&quot;(?i)invoke-webrequest|curl|wget|bitsadmin|http://&quot;),1,0), risk=20+encoded*50+download*35 | stats count as executions max(risk) as risk values(parent_process) as parents values(command_line) as command_lines by endpoint_host user process_name | sort - risk executions | head 10</code></pre>
+              </details>
+            </section>
+            
+            <section class="finding">
+              <div class="finding-head">
+                <div>
+                  <span class="eyebrow">Finding 3 / cloud</span>
+                  <h2>Cloud Privilege Escalation or Persistence</h2>
+                </div>
+                <span class="severity sev-critical">CRITICAL</span>
+              </div>
+              <p class="summary">Cloud Privilege Escalation or Persistence: Finds sensitive AWS-style IAM and STS actions associated with persistence or privilege escalation. Top evidence: userIdentity.arn=arn:aws:iam::123456789012:user/devon.lee, actions=[&#x27;AssumeRole&#x27;, &#x27;AttachUserPolicy&#x27;, &#x27;ConsoleLogin&#x27;, &#x27;CreateAccessKey&#x27;, &#x27;PutUserPolicy&#x27;, &#x27;UpdateAssumeRolePolicy&#x27;], src_ips=[&#x27;10.10.1.135&#x27;, &#x27;10.10.1.137&#x27;, &#x27;10.10.1.160&#x27;, &#x27;10.10.1.170&#x27;, &#x27;10.10.1.179&#x27;, &#x27;10.10.1.198&#x27;, &#x27;10.10.1.237&#x27;, &#x27;10.10.1.4&#x27;, &#x27;10.10.1.45&#x27;, &#x27;10.10.1.60&#x27;, &#x27;10.10.1.7&#x27;, &#x27;10.10.2.13&#x27;, &#x27;10.10.2.141&#x27;, &#x27;10.10.2.151&#x27;, &#x27;10.10.2.154&#x27;, &#x27;10.10.2.160&#x27;, &#x27;10.10.2.179&#x27;, &#x27;10.10.2.208&#x27;, &#x27;10.10.2.32&#x27;, &#x27;10.10.2.46&#x27;, &#x27;10.10.2.54&#x27;, &#x27;10.10.2.79&#x27;, &#x27;10.20.5.134&#x27;, &#x27;10.20.5.137&#x27;, &#x27;10.20.5.171&#x27;, &#x27;10.20.5.174&#x27;, &#x27;10.20.5.195&#x27;, &#x27;10.20.5.207&#x27;, &#x27;10.20.5.213&#x27;, &#x27;10.20.5.33&#x27;, &#x27;10.20.5.41&#x27;, &#x27;10.20.5.7&#x27;, &#x27;10.20.5.93&#x27;, &#x27;103.77.240.9&#x27;, &#x27;172.16.8.111&#x27;, &#x27;172.16.8.113&#x27;, &#x27;172.16.8.126&#x27;, &#x27;172.16.8.139&#x27;, &#x27;172.16.8.140&#x27;, &#x27;172.16.8.173&#x27;, &#x27;172.16.8.179&#x27;, &#x27;172.16.8.216&#x27;, &#x27;172.16.8.33&#x27;, &#x27;172.16.8.37&#x27;, &#x27;172.16.8.39&#x27;, &#x27;172.16.8.55&#x27;, &#x27;172.16.8.75&#x27;, &#x27;172.16.8.76&#x27;, &#x27;185.220.101.33&#x27;, &#x27;198.51.100.42&#x27;, &#x27;203.0.113.18&#x27;, &#x27;23.91.44.10&#x27;, &#x27;45.66.12.88&#x27;, &#x27;71.19.144.41&#x27;, &#x27;91.240.118.20&#x27;], risk=1550. Recommended action: Review whether the principal should perform IAM changes, inspect CloudTrail activity before and after, and rotate credentials if unauthorized.</p>
+              <div class="meta-grid">
+                <div><span>MITRE</span><strong>Privilege Escalation: Account Manipulation (T1098)</strong></div>
+                <div><span>Rows</span><strong>5</strong></div>
+                <div><span>Domain</span><strong>Cloud</strong></div>
+              </div>
+              <h3>Evidence</h3>
+              <div class="table-wrap"><table><thead><tr><th>userIdentity.arn</th><th>recipientAccountId</th><th>events</th><th>actions</th><th>src_ips</th><th>regions</th><th>risk</th></tr></thead><tbody><tr><td>arn:aws:iam::123456789012:user/devon.lee</td><td>123456789012</td><td>274</td><td>[&#x27;AssumeRole&#x27;, &#x27;AttachUserPolicy&#x27;, &#x27;ConsoleLogin&#x27;, &#x27;CreateAccessKey&#x27;, &#x27;PutUserPolicy&#x27;, &#x27;UpdateAssumeRolePolicy&#x27;]</td><td>[&#x27;10.10.1.135&#x27;, &#x27;10.10.1.137&#x27;, &#x27;10.10.1.160&#x27;, &#x27;10.10.1.170&#x27;, &#x27;10.10.1.179&#x27;, &#x27;10.10.1.198&#x27;, &#x27;10.10.1.237&#x27;, &#x27;10.10.1.4&#x27;, &#x27;10.10.1.45&#x27;, &#x27;10.10.1.60&#x27;, &#x27;10.10.1.7&#x27;, &#x27;10.10.2.13&#x27;, &#x27;10.10.2.141&#x27;, &#x27;10.10.2.151&#x27;, &#x27;10.10.2.154&#x27;, &#x27;10.10.2.160&#x27;, &#x27;10.10.2.179&#x27;, &#x27;10.10.2.208&#x27;, &#x27;10.10.2.32&#x27;, &#x27;10.10.2.46&#x27;, &#x27;10</td><td>[&#x27;eu-west-1&#x27;, &#x27;us-east-1&#x27;, &#x27;us-east-2&#x27;, &#x27;us-west-2&#x27;]</td><td>1550</td></tr><tr><td>arn:aws:iam::123456789012:user/carla.ruiz</td><td>123456789012</td><td>260</td><td>[&#x27;AssumeRole&#x27;, &#x27;AttachUserPolicy&#x27;, &#x27;ConsoleLogin&#x27;, &#x27;CreateAccessKey&#x27;, &#x27;PutUserPolicy&#x27;, &#x27;UpdateAssumeRolePolicy&#x27;]</td><td>[&#x27;10.10.1.115&#x27;, &#x27;10.10.1.118&#x27;, &#x27;10.10.1.16&#x27;, &#x27;10.10.1.178&#x27;, &#x27;10.10.1.191&#x27;, &#x27;10.10.1.204&#x27;, &#x27;10.10.1.225&#x27;, &#x27;10.10.1.233&#x27;, &#x27;10.10.1.34&#x27;, &#x27;10.10.1.53&#x27;, &#x27;10.10.1.59&#x27;, &#x27;10.10.1.84&#x27;, &#x27;10.10.1.91&#x27;, &#x27;10.10.1.99&#x27;, &#x27;10.10.2.106&#x27;, &#x27;10.10.2.114&#x27;, &#x27;10.10.2.135&#x27;, &#x27;10.10.2.168&#x27;, &#x27;10.10.2.169&#x27;, &#x27;10.10.2.180&#x27;, &#x27;</td><td>[&#x27;eu-west-1&#x27;, &#x27;us-east-1&#x27;, &#x27;us-east-2&#x27;, &#x27;us-west-2&#x27;]</td><td>1480</td></tr><tr><td>arn:aws:iam::123456789012:user/svc_backup</td><td>123456789012</td><td>252</td><td>[&#x27;AssumeRole&#x27;, &#x27;AttachUserPolicy&#x27;, &#x27;ConsoleLogin&#x27;, &#x27;CreateAccessKey&#x27;, &#x27;PutUserPolicy&#x27;, &#x27;UpdateAssumeRolePolicy&#x27;]</td><td>[&#x27;10.10.1.100&#x27;, &#x27;10.10.1.157&#x27;, &#x27;10.10.1.17&#x27;, &#x27;10.10.1.173&#x27;, &#x27;10.10.1.189&#x27;, &#x27;10.10.1.212&#x27;, &#x27;10.10.1.215&#x27;, &#x27;10.10.1.229&#x27;, &#x27;10.10.1.236&#x27;, &#x27;10.10.1.56&#x27;, &#x27;10.10.1.65&#x27;, &#x27;10.10.1.67&#x27;, &#x27;10.10.1.85&#x27;, &#x27;10.10.2.11&#x27;, &#x27;10.10.2.111&#x27;, &#x27;10.10.2.20&#x27;, &#x27;10.10.2.40&#x27;, &#x27;10.10.2.56&#x27;, &#x27;10.20.5.126&#x27;, &#x27;10.20.5.146&#x27;, &#x27;10</td><td>[&#x27;eu-west-1&#x27;, &#x27;us-east-1&#x27;, &#x27;us-east-2&#x27;, &#x27;us-west-2&#x27;]</td><td>1440</td></tr><tr><td>arn:aws:iam::123456789012:user/alice.nguyen</td><td>123456789012</td><td>248</td><td>[&#x27;AssumeRole&#x27;, &#x27;AttachUserPolicy&#x27;, &#x27;ConsoleLogin&#x27;, &#x27;CreateAccessKey&#x27;, &#x27;PutUserPolicy&#x27;, &#x27;UpdateAssumeRolePolicy&#x27;]</td><td>[&#x27;10.10.1.139&#x27;, &#x27;10.10.1.145&#x27;, &#x27;10.10.1.188&#x27;, &#x27;10.10.1.206&#x27;, &#x27;10.10.1.220&#x27;, &#x27;10.10.1.40&#x27;, &#x27;10.10.1.5&#x27;, &#x27;10.10.1.89&#x27;, &#x27;10.10.2.126&#x27;, &#x27;10.10.2.132&#x27;, &#x27;10.10.2.135&#x27;, &#x27;10.10.2.152&#x27;, &#x27;10.10.2.166&#x27;, &#x27;10.10.2.173&#x27;, &#x27;10.10.2.24&#x27;, &#x27;10.10.2.28&#x27;, &#x27;10.10.2.77&#x27;, &#x27;10.10.2.84&#x27;, &#x27;10.10.2.9&#x27;, &#x27;10.20.5.105&#x27;, &#x27;10.</td><td>[&#x27;eu-west-1&#x27;, &#x27;us-east-1&#x27;, &#x27;us-east-2&#x27;, &#x27;us-west-2&#x27;]</td><td>1420</td></tr><tr><td>arn:aws:iam::123456789012:user/svc_ci_cd</td><td>123456789012</td><td>230</td><td>[&#x27;AssumeRole&#x27;, &#x27;AttachUserPolicy&#x27;, &#x27;ConsoleLogin&#x27;, &#x27;CreateAccessKey&#x27;, &#x27;PutUserPolicy&#x27;, &#x27;UpdateAssumeRolePolicy&#x27;]</td><td>[&#x27;10.10.1.115&#x27;, &#x27;10.10.1.121&#x27;, &#x27;10.10.1.123&#x27;, &#x27;10.10.1.125&#x27;, &#x27;10.10.1.2&#x27;, &#x27;10.10.1.204&#x27;, &#x27;10.10.1.222&#x27;, &#x27;10.10.1.233&#x27;, &#x27;10.10.1.25&#x27;, &#x27;10.10.1.29&#x27;, &#x27;10.10.1.37&#x27;, &#x27;10.10.1.60&#x27;, &#x27;10.10.1.77&#x27;, &#x27;10.10.1.99&#x27;, &#x27;10.10.2.10&#x27;, &#x27;10.10.2.119&#x27;, &#x27;10.10.2.152&#x27;, &#x27;10.10.2.155&#x27;, &#x27;10.10.2.190&#x27;, &#x27;10.10.2.27&#x27;, &#x27;10.</td><td>[&#x27;eu-west-1&#x27;, &#x27;us-east-1&#x27;, &#x27;us-east-2&#x27;, &#x27;us-west-2&#x27;]</td><td>1330</td></tr></tbody></table></div>
+              <details>
+                <summary>SPL used by the agent</summary>
+                <pre><code>search index=lab_cloud eventName IN (&quot;CreateAccessKey&quot;,&quot;AttachUserPolicy&quot;,&quot;PutUserPolicy&quot;,&quot;UpdateAssumeRolePolicy&quot;,&quot;AssumeRole&quot;,&quot;CreateLoginProfile&quot;,&quot;ConsoleLogin&quot;) | stats count as events values(eventName) as actions values(sourceIPAddress) as src_ips values(awsRegion) as regions by userIdentity.arn recipientAccountId | eval risk=events*5+mvcount(actions)*20+if(match(mvjoin(actions,&quot;,&quot;),&quot;CreateAccessKey|AttachUserPolicy|PutUserPolicy&quot;),60,0) | sort - risk | head 10</code></pre>
+              </details>
+            </section>
+            
+            <section class="finding">
+              <div class="finding-head">
+                <div>
+                  <span class="eyebrow">Finding 4 / identity</span>
+                  <h2>Brute Force or Password Spray Candidate</h2>
+                </div>
+                <span class="severity sev-high">HIGH</span>
+              </div>
+              <p class="summary">Brute Force or Password Spray Candidate: Finds accounts with repeated failures, multiple source addresses, or concentrated failed login bursts. Top evidence: user=erin.patel, src_ips=[&#x27;10.20.5.156&#x27;, &#x27;10.20.5.74&#x27;, &#x27;103.77.240.9&#x27;, &#x27;172.16.8.100&#x27;, &#x27;45.66.12.88&#x27;], failures=10, src_count=5. Recommended action: Validate whether the user expected these attempts, review MFA outcome, and pivot into successful logins from the same source addresses.</p>
+              <div class="meta-grid">
+                <div><span>MITRE</span><strong>Credential Access: Brute Force (T1110)</strong></div>
+                <div><span>Rows</span><strong>5</strong></div>
+                <div><span>Domain</span><strong>Identity</strong></div>
+              </div>
+              <h3>Evidence</h3>
+              <div class="table-wrap"><table><thead><tr><th>user</th><th>_time</th><th>failures</th><th>src_count</th><th>src_ips</th><th>reasons</th></tr></thead><tbody><tr><td>erin.patel</td><td>2026-06-17T23:30:00.000+00:00</td><td>10</td><td>5</td><td>[&#x27;10.20.5.156&#x27;, &#x27;10.20.5.74&#x27;, &#x27;103.77.240.9&#x27;, &#x27;172.16.8.100&#x27;, &#x27;45.66.12.88&#x27;]</td><td>[&#x27;bad password&#x27;, &#x27;mfa denied&#x27;, &#x27;unknown user&#x27;]</td></tr><tr><td>bob.smith</td><td>2026-06-18T12:30:00.000+00:00</td><td>8</td><td>4</td><td>[&#x27;10.10.2.177&#x27;, &#x27;10.10.2.6&#x27;, &#x27;10.20.5.179&#x27;, &#x27;172.16.8.10&#x27;]</td><td>[&#x27;account locked&#x27;, &#x27;bad password&#x27;, &#x27;unknown user&#x27;]</td></tr><tr><td>svc_ci_cd</td><td>2026-06-18T03:00:00.000+00:00</td><td>8</td><td>4</td><td>[&#x27;10.10.1.157&#x27;, &#x27;172.16.8.55&#x27;, &#x27;71.19.144.41&#x27;, &#x27;91.240.118.20&#x27;]</td><td>[&#x27;mfa denied&#x27;, &#x27;unknown user&#x27;]</td></tr><tr><td>alice.nguyen</td><td>2026-06-17T18:00:00.000+00:00</td><td>6</td><td>3</td><td>[&#x27;10.20.5.116&#x27;, &#x27;10.20.5.24&#x27;, &#x27;172.16.8.187&#x27;]</td><td>[&#x27;mfa denied&#x27;, &#x27;unknown user&#x27;]</td></tr><tr><td>carla.ruiz</td><td>2026-06-17T23:30:00.000+00:00</td><td>6</td><td>3</td><td>[&#x27;10.10.2.29&#x27;, &#x27;10.20.5.194&#x27;, &#x27;91.240.118.20&#x27;]</td><td>[&#x27;account locked&#x27;, &#x27;unknown user&#x27;]</td></tr></tbody></table></div>
+              <details>
+                <summary>SPL used by the agent</summary>
+                <pre><code>search index=lab_auth action=failure | bucket _time span=30m | stats count as failures dc(src_ip) as src_count values(src_ip) as src_ips values(reason) as reasons by user _time | where failures&gt;=6 | sort - failures | head 10</code></pre>
+              </details>
+            </section>
+            
+            <section class="finding">
+              <div class="finding-head">
+                <div>
+                  <span class="eyebrow">Finding 5 / endpoint</span>
+                  <h2>Suspicious Endpoint Network Egress</h2>
+                </div>
+                <span class="severity sev-high">HIGH</span>
+              </div>
+              <p class="summary">Suspicious Endpoint Network Egress: Finds endpoint network connections to high-risk ports such as 4444, 9001, 8080, and RDP. Top evidence: endpoint_host=web-02, user=erin.patel, dest_port=4444, dest_ips=[&#x27;71.19.144.41&#x27;, &#x27;91.240.118.20&#x27;], connections=6. Recommended action: Pivot to process_name and command_line on the same host, then validate whether the destination is known business infrastructure.</p>
+              <div class="meta-grid">
+                <div><span>MITRE</span><strong>Command and Control: Non-Standard Port (T1571)</strong></div>
+                <div><span>Rows</span><strong>5</strong></div>
+                <div><span>Domain</span><strong>Endpoint</strong></div>
+              </div>
+              <h3>Evidence</h3>
+              <div class="table-wrap"><table><thead><tr><th>endpoint_host</th><th>user</th><th>dest_port</th><th>connections</th><th>distinct_dest</th><th>dest_ips</th><th>processes</th><th>risk</th></tr></thead><tbody><tr><td>web-02</td><td>erin.patel</td><td>4444</td><td>6</td><td>2</td><td>[&#x27;71.19.144.41&#x27;, &#x27;91.240.118.20&#x27;]</td><td>[&#x27;chrome.exe&#x27;, &#x27;outlook.exe&#x27;]</td><td>96</td></tr><tr><td>db-01</td><td>erin.patel</td><td>4444</td><td>4</td><td>2</td><td>[&#x27;203.0.113.18&#x27;, &#x27;45.66.12.88&#x27;]</td><td>[&#x27;chrome.exe&#x27;, &#x27;powershell.exe&#x27;]</td><td>94</td></tr><tr><td>db-01</td><td>svc_backup</td><td>4444</td><td>4</td><td>2</td><td>[&#x27;23.91.44.10&#x27;, &#x27;71.19.144.41&#x27;]</td><td>[&#x27;cmd.exe&#x27;, &#x27;powershell.exe&#x27;]</td><td>94</td></tr><tr><td>web-01</td><td>frank.kim</td><td>4444</td><td>4</td><td>2</td><td>[&#x27;103.77.240.9&#x27;, &#x27;71.19.144.41&#x27;]</td><td>[&#x27;cmd.exe&#x27;, &#x27;outlook.exe&#x27;]</td><td>94</td></tr><tr><td>web-02</td><td>grace.hall</td><td>4444</td><td>4</td><td>2</td><td>[&#x27;45.66.12.88&#x27;, &#x27;71.19.144.41&#x27;]</td><td>[&#x27;chrome.exe&#x27;, &#x27;cmd.exe&#x27;]</td><td>94</td></tr></tbody></table></div>
+              <details>
+                <summary>SPL used by the agent</summary>
+                <pre><code>search index=lab_endpoint event_type=network dest_port IN (4444,8080,9001,3389) | spath input=_raw path=host output=endpoint_host | eval endpoint_host=coalesce(endpoint_host,host) | stats count as connections dc(dest_ip) as distinct_dest values(dest_ip) as dest_ips values(process_name) as processes by endpoint_host user dest_port | eval risk=connections+distinct_dest*10+case(dest_port=4444,70,dest_port=9001,50,dest_port=3389,35,true(),10) | sort - risk | head 10</code></pre>
+              </details>
+            </section>
+            
+            <section class="finding">
+              <div class="finding-head">
+                <div>
+                  <span class="eyebrow">Finding 6 / web</span>
+                  <h2>Risky Web or API Client</h2>
+                </div>
+                <span class="severity sev-high">HIGH</span>
+              </div>
+              <p class="summary">Risky Web or API Client: Ranks web clients by attack volume, error rate, and latency impact. Top evidence: client_ip=203.0.113.18, user_agent=Edge, attacks=12, error_rate=100.00, risk=152. Recommended action: Review request paths, WAF decisions, authentication attempts, and whether the source has related identity or network activity.</p>
+              <div class="meta-grid">
+                <div><span>MITRE</span><strong>Initial Access: Exploit Public-Facing Application (T1190)</strong></div>
+                <div><span>Rows</span><strong>5</strong></div>
+                <div><span>Domain</span><strong>Web</strong></div>
+              </div>
+              <h3>Evidence</h3>
+              <div class="table-wrap"><table><thead><tr><th>client_ip</th><th>user_agent</th><th>requests</th><th>errors</th><th>attacks</th><th>p95_ms</th><th>attack_types</th><th>error_rate</th><th>risk</th></tr></thead><tbody><tr><td>203.0.113.18</td><td>Edge</td><td>12</td><td>12</td><td>12</td><td>1108</td><td>[&#x27;credential_stuffing&#x27;, &#x27;path_traversal&#x27;, &#x27;scanner&#x27;, &#x27;sql_injection&#x27;, &#x27;xss&#x27;]</td><td>100.00</td><td>152</td></tr><tr><td>198.51.100.42</td><td>Chrome</td><td>12</td><td>12</td><td>12</td><td>990</td><td>[&#x27;scanner&#x27;, &#x27;sql_injection&#x27;, &#x27;xss&#x27;]</td><td>100.00</td><td>132</td></tr><tr><td>91.240.118.20</td><td>python-requests</td><td>12</td><td>12</td><td>12</td><td>340</td><td>[&#x27;credential_stuffing&#x27;, &#x27;path_traversal&#x27;, &#x27;xss&#x27;]</td><td>100.00</td><td>132</td></tr><tr><td>103.77.240.9</td><td>Chrome</td><td>10</td><td>10</td><td>10</td><td>225</td><td>[&#x27;credential_stuffing&#x27;, &#x27;scanner&#x27;, &#x27;sql_injection&#x27;, &#x27;xss&#x27;]</td><td>100.00</td><td>110</td></tr><tr><td>198.51.100.42</td><td>sqlmap</td><td>10</td><td>10</td><td>10</td><td>317</td><td>[&#x27;path_traversal&#x27;, &#x27;scanner&#x27;, &#x27;xss&#x27;]</td><td>100.00</td><td>110</td></tr></tbody></table></div>
+              <details>
+                <summary>SPL used by the agent</summary>
+                <pre><code>search index=lab_web | eval error=if(status&gt;=400,1,0), attack=if(attack_type!=&quot;none&quot;,1,0) | stats count as requests sum(error) as errors sum(attack) as attacks p95(response_ms) as p95_ms values(attack_type) as attack_types by client_ip user_agent | eval error_rate=round(errors/requests*100,2), risk=attacks*10+errors+if(p95_ms&gt;1000,20,0) | where attacks&gt;0 OR error_rate&gt;20 | sort - risk | head 10</code></pre>
+              </details>
+            </section>
+            
+  </main>
+</body>
+</html>
